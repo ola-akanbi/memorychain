@@ -34,3 +34,42 @@
         
         ;; Add memory to family
         (map-set family-memories
+        {family-id: family-id, memory-id: memory-id}
+            {
+                added-by: caller,
+                added-at: memory-id,
+                is-active: true
+            }
+        )
+        
+        (ok {family-id: family-id, memory-id: memory-id})
+    )
+)
+
+;; Remove memory from family collection
+(define-public (remove-memory-from-family (memory-id uint) (family-id uint))
+    (let (
+        (caller tx-sender)
+        (association (unwrap! (map-get? family-memories {family-id: family-id, memory-id: memory-id}) 
+                             ERR-MEMORY-NOT-FOUND))
+    )
+        ;; Check permissions (simplified)
+        (asserts! (is-eq caller (get added-by association)) ERR-INSUFFICIENT-PERMISSIONS)
+        
+        ;; Remove association
+        (map-set family-memories
+            {family-id: family-id, memory-id: memory-id}
+            (merge association {is-active: false})
+        )
+        
+        (ok {family-id: family-id, memory-id: memory-id})
+    )
+)
+
+;; Check if memory belongs to family
+(define-read-only (is-family-memory (family-id uint) (memory-id uint))
+    (match (map-get? family-memories {family-id: family-id, memory-id: memory-id})
+        association (get is-active association)
+        false
+    )
+)
