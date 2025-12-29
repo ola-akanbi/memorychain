@@ -64,3 +64,35 @@
         (is-eq role ROLE-VIEWER)
     )
 )
+
+;; Check if user has admin privileges in family
+(define-private (has-admin-privileges (family-id uint) (user principal))
+    (match (map-get? family-members {family-id: family-id, member: user})
+        member-data 
+            (and 
+                (get is-active member-data)
+                (or 
+                    (is-eq (get role member-data) ROLE-OWNER)
+                    (is-eq (get role member-data) ROLE-ADMIN)
+                )
+            )
+        false
+    )
+)
+
+;; Generate next family ID
+(define-private (get-next-family-id)
+    (let ((current-id (var-get family-counter)))
+        (var-set family-counter (+ current-id u1))
+        (+ current-id u1)
+    )
+)
+
+;; Check if invitation is still valid
+(define-private (is-invitation-valid (family-id uint) (invitee principal))
+    (match (map-get? family-invitations {family-id: family-id, invitee: invitee})
+        invitation-data
+            (> (get expires-at invitation-data) (get invited-at invitation-data))
+        false
+    )
+)
