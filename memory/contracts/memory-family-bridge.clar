@@ -34,7 +34,7 @@
         
         ;; Add memory to family
         (map-set family-memories
-        {family-id: family-id, memory-id: memory-id}
+            {family-id: family-id, memory-id: memory-id}
             {
                 added-by: caller,
                 added-at: memory-id,
@@ -72,4 +72,17 @@
         association (get is-active association)
         false
     )
+)
+
+;; Get family memory association details
+(define-read-only (get-family-memory-info (family-id uint) (memory-id uint))
+    (map-get? family-memories {family-id: family-id, memory-id: memory-id})
+)
+
+;; Get integration statistics
+(define-read-only (get-integration-stats)
+    (ok {
+        bridge-version: "1.0.0",
+        integration-active: true
+    })
 )
