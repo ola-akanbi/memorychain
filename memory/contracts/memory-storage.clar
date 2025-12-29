@@ -231,3 +231,44 @@
         (ok memory-id)
     )
 )
+;; Read-only functions
+(define-read-only (get-memory (memory-id uint))
+    (match (map-get? memories memory-id)
+        memory-data 
+            (if (get is-active memory-data)
+                (ok memory-data)
+                ERR-MEMORY-NOT-FOUND
+            )
+        ERR-MEMORY-NOT-FOUND
+    )
+)
+
+(define-read-only (get-memory-for-user (memory-id uint) (user principal))
+    (if (can-access-memory memory-id user)
+        (get-memory memory-id)
+        ERR-PERMISSION-DENIED
+    )
+)
+
+(define-read-only (get-total-memory-count)
+    (var-get memory-counter)
+)
+
+(define-read-only (get-user-memory-count (user principal))
+    (default-to u0 (map-get? user-memory-count user))
+)
+
+(define-read-only (get-category-count (category (string-ascii 20)))
+    (default-to u0 (map-get? category-count category))
+)
+
+(define-read-only (is-memory-owner (memory-id uint) (user principal))
+    (match (map-get? memories memory-id)
+        memory-data 
+            (and 
+                (is-eq user (get owner memory-data))
+                (get is-active memory-data)
+            )
+        false
+    )
+)
