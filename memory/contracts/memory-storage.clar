@@ -112,7 +112,7 @@
         (asserts! (> (len title) u0) ERR-EMPTY-TITLE)
         (asserts! (> (len ipfs-hash) u0) ERR-EMPTY-TITLE)
         (asserts! (is-valid-category category) ERR-INVALID-CATEGORY)
-
+        
         ;; Create memory record
         (map-set memories memory-id {
             title: title,
@@ -188,8 +188,7 @@
     (can-view bool) 
     (can-edit bool)
 )
-
-(let (
+    (let (
         (memory-data (unwrap! (map-get? memories memory-id) ERR-MEMORY-NOT-FOUND))
         (caller tx-sender)
     )
@@ -231,6 +230,7 @@
         (ok memory-id)
     )
 )
+
 ;; Read-only functions
 (define-read-only (get-memory (memory-id uint))
     (match (map-get? memories memory-id)
@@ -271,4 +271,20 @@
             )
         false
     )
+)
+
+(define-read-only (get-memory-permissions (memory-id uint) (user principal))
+    (map-get? memory-permissions {memory-id: memory-id, user: user})
+)
+
+(define-read-only (get-contract-stats)
+    (ok {
+        total-memories: (var-get memory-counter),
+        photo-count: (get-category-count "photo"),
+        document-count: (get-category-count "document"),
+        video-count: (get-category-count "video"),
+        letter-count: (get-category-count "letter"),
+        audio-count: (get-category-count "audio"),
+        other-count: (get-category-count "other")
+    })
 )
