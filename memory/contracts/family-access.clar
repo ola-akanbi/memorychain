@@ -96,3 +96,36 @@
         false
     )
 )
+
+;; Create new family group
+(define-public (create-family (family-name (string-ascii 50)))
+    (let (
+        (family-id (get-next-family-id))
+        (caller tx-sender)
+    )
+        ;; Validate input
+        (asserts! (> (len family-name) u0) ERR-INVALID-FAMILY-DATA)
+        
+        ;; Create family record
+        (map-set families family-id {
+            name: family-name,
+            owner: caller,
+            created-at: family-id,
+            member-count: u1,
+            is-active: true
+        })
+        
+        ;; Add creator as owner
+        (map-set family-members 
+            {family-id: family-id, member: caller}
+            {
+                role: ROLE-OWNER,
+                joined-at: family-id,
+                invited-by: caller,
+                is-active: true
+            }
+        )
+        
+        (ok family-id)
+    )
+)
