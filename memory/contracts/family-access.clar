@@ -271,3 +271,43 @@
 (define-read-only (get-family (family-id uint))
     (map-get? families family-id)
 )
+
+(define-read-only (get-member-details (family-id uint) (member principal))
+    (map-get? family-members {family-id: family-id, member: member})
+)
+
+(define-read-only (is-family-member (family-id uint) (user principal))
+    (match (map-get? family-members {family-id: family-id, member: user})
+        member-data (get is-active member-data)
+        false
+    )
+)
+
+(define-read-only (has-family-role (family-id uint) (user principal) (required-role (string-ascii 10)))
+    (match (map-get? family-members {family-id: family-id, member: user})
+        member-data 
+            (and 
+                (get is-active member-data)
+                (is-eq (get role member-data) required-role)
+            )
+        false
+    )
+)
+
+(define-read-only (can-access-family-memories (family-id uint) (user principal))
+    (match (map-get? family-members {family-id: family-id, member: user})
+        member-data 
+            (let ((user-role (get role member-data)))
+                (and 
+                    (get is-active member-data)
+                    (or 
+                        (is-eq user-role ROLE-OWNER)
+                        (is-eq user-role ROLE-ADMIN)
+                        (is-eq user-role ROLE-MEMBER)
+                        (is-eq user-role ROLE-VIEWER)
+                    )
+                )
+            )
+        false
+    )
+)
