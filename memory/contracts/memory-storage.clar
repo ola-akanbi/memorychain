@@ -150,3 +150,41 @@
         (asserts! (get is-active memory-data) ERR-MEMORY-NOT-FOUND)
         (asserts! (> (len title) u0) ERR-EMPTY-TITLE)
         
+        ;; Update memory
+        (map-set memories memory-id (merge memory-data {
+            title: title,
+            description: description,
+            updated-at: memory-id
+        }))
+        
+        (ok memory-id)
+    )
+)
+
+;; Transfer memory ownership
+(define-public (transfer-memory (memory-id uint) (new-owner principal))
+    (let (
+        (memory-data (unwrap! (map-get? memories memory-id) ERR-MEMORY-NOT-FOUND))
+        (caller tx-sender)
+    )
+        ;; Authorization check
+        (asserts! (is-eq caller (get owner memory-data)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active memory-data) ERR-MEMORY-NOT-FOUND)
+        
+        ;; Transfer ownership
+        (map-set memories memory-id (merge memory-data {
+            owner: new-owner,
+            updated-at: memory-id
+        }))
+        
+        (ok memory-id)
+    )
+)
+
+;; Grant memory access permission
+(define-public (grant-access 
+    (memory-id uint) 
+    (user principal) 
+    (can-view bool) 
+    (can-edit bool)
+)
