@@ -234,3 +234,40 @@
         (ok family-id)
     )
 )
+
+;; Change member role
+(define-public (change-member-role 
+    (family-id uint) 
+    (member principal) 
+    (new-role (string-ascii 10))
+)
+    (let (
+        (caller tx-sender)
+        (family-data (unwrap! (map-get? families family-id) ERR-FAMILY-NOT-FOUND))
+        (member-data (unwrap! (map-get? family-members {family-id: family-id, member: member}) 
+                             ERR-MEMBER-NOT-FOUND))
+    )
+        ;; Check authorization (only family owner can change roles)
+        (asserts! (is-eq caller (get owner family-data)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active family-data) ERR-FAMILY-NOT-FOUND)
+        (asserts! (get is-active member-data) ERR-MEMBER-NOT-FOUND)
+        (asserts! (is-valid-role new-role) ERR-INVALID-ROLE)
+        
+        ;; Cannot change owner role
+        (asserts! (not (is-eq (get role member-data) ROLE-OWNER)) ERR-NOT-AUTHORIZED)
+        (asserts! (not (is-eq new-role ROLE-OWNER)) ERR-NOT-AUTHORIZED)
+        
+        ;; Update role
+        (map-set family-members
+            {family-id: family-id, member: member}
+            (merge member-data {role: new-role})
+        )
+        
+        (ok family-id)
+    )
+)
+
+;; Read-only functions
+(define-read-only (get-family (family-id uint))
+    (map-get? families family-id)
+)
