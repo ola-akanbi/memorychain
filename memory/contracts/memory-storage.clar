@@ -112,3 +112,41 @@
         (asserts! (> (len title) u0) ERR-EMPTY-TITLE)
         (asserts! (> (len ipfs-hash) u0) ERR-EMPTY-TITLE)
         (asserts! (is-valid-category category) ERR-INVALID-CATEGORY)
+
+        ;; Create memory record
+        (map-set memories memory-id {
+            title: title,
+            description: description,
+            ipfs-hash: ipfs-hash,
+            owner: caller,
+            category: category,
+            family-id: family-id,
+            created-at: memory-id,
+            updated-at: memory-id,
+            is-active: true,
+            is-private: is-private
+        })
+        
+        ;; Update counters
+        (increment-user-count caller)
+        (increment-category-count category)
+        
+        (ok memory-id)
+    )
+)
+
+;; Update memory details
+(define-public (update-memory 
+    (memory-id uint)
+    (title (string-ascii 100))
+    (description (string-ascii 500))
+)
+    (let (
+        (memory-data (unwrap! (map-get? memories memory-id) ERR-MEMORY-NOT-FOUND))
+        (caller tx-sender)
+    )
+        ;; Authorization check
+        (asserts! (is-eq caller (get owner memory-data)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active memory-data) ERR-MEMORY-NOT-FOUND)
+        (asserts! (> (len title) u0) ERR-EMPTY-TITLE)
+        
