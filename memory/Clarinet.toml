@@ -1,0 +1,29 @@
+[project]
+name = 'memory'
+description = ''
+authors = []
+telemetry = true
+cache_dir = '.\.cache'
+requirements = []
+[contracts.family-access]
+path = 'contracts/family-access.clar'
+clarity_version = 2
+epoch = 2.5
+
+[contracts.memory-family-bridge]
+path = 'contracts/memory-family-bridge.clar'
+clarity_version = 2
+epoch = 2.5
+
+[contracts.memory-storage]
+path = 'contracts/memory-storage.clar'
+clarity_version = 2
+epoch = 2.5
+[repl.analysis]
+passes = ['check_checker']
+
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
