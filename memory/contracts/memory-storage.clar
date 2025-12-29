@@ -188,3 +188,46 @@
     (can-view bool) 
     (can-edit bool)
 )
+
+(let (
+        (memory-data (unwrap! (map-get? memories memory-id) ERR-MEMORY-NOT-FOUND))
+        (caller tx-sender)
+    )
+        ;; Authorization check
+        (asserts! (is-eq caller (get owner memory-data)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active memory-data) ERR-MEMORY-NOT-FOUND)
+        
+        ;; Grant permission
+        (map-set memory-permissions 
+            {memory-id: memory-id, user: user}
+            {
+                can-view: can-view,
+                can-edit: can-edit,
+                granted-by: caller,
+                granted-at: memory-id
+            }
+        )
+        
+        (ok memory-id)
+    )
+)
+
+;; Delete memory (soft delete)
+(define-public (delete-memory (memory-id uint))
+    (let (
+        (memory-data (unwrap! (map-get? memories memory-id) ERR-MEMORY-NOT-FOUND))
+        (caller tx-sender)
+    )
+        ;; Authorization check
+        (asserts! (is-eq caller (get owner memory-data)) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active memory-data) ERR-MEMORY-NOT-FOUND)
+        
+        ;; Soft delete
+        (map-set memories memory-id (merge memory-data {
+            is-active: false,
+            updated-at: memory-id
+        }))
+        
+        (ok memory-id)
+    )
+)
