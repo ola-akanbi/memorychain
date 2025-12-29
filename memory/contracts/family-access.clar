@@ -129,3 +129,38 @@
         (ok family-id)
     )
 )
+
+;; Invite member to family
+(define-public (invite-member 
+    (family-id uint) 
+    (invitee principal) 
+    (role (string-ascii 10))
+)
+    (let (
+        (family-data (unwrap! (map-get? families family-id) ERR-FAMILY-NOT-FOUND))
+        (caller tx-sender)
+        (expiry-time (+ family-id u100)) ;; Simple expiry logic
+    )
+        ;; Check authorization
+        (asserts! (has-admin-privileges family-id caller) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active family-data) ERR-FAMILY-NOT-FOUND)
+        (asserts! (is-valid-role role) ERR-INVALID-ROLE)
+        
+        ;; Check if already a member
+        (asserts! (is-none (map-get? family-members {family-id: family-id, member: invitee})) 
+                 ERR-MEMBER-ALREADY-EXISTS)
+        
+        ;; Create invitation
+        (map-set family-invitations
+            {family-id: family-id, invitee: invitee}
+            {
+                inviter: caller,
+                role: role,
+                invited-at: family-id,
+                expires-at: expiry-time
+            }
+        )
+        
+        (ok family-id)
+    )
+)
