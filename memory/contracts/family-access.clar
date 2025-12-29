@@ -201,3 +201,36 @@
         (ok family-id)
     )
 )
+
+;; Remove member from family
+(define-public (remove-member (family-id uint) (member principal))
+    (let (
+        (caller tx-sender)
+        (family-data (unwrap! (map-get? families family-id) ERR-FAMILY-NOT-FOUND))
+        (member-data (unwrap! (map-get? family-members {family-id: family-id, member: member}) 
+                             ERR-MEMBER-NOT-FOUND))
+    )
+        ;; Check authorization
+        (asserts! (has-admin-privileges family-id caller) ERR-NOT-AUTHORIZED)
+        (asserts! (get is-active family-data) ERR-FAMILY-NOT-FOUND)
+        (asserts! (get is-active member-data) ERR-MEMBER-NOT-FOUND)
+        
+        ;; Cannot remove family owner
+        (asserts! (not (is-eq (get role member-data) ROLE-OWNER)) ERR-CANNOT-REMOVE-OWNER)
+        
+        ;; Remove member
+        (map-set family-members
+            {family-id: family-id, member: member}
+            (merge member-data {is-active: false})
+        )
+        
+        ;; Update family member count
+        (map-set families family-id 
+            (merge family-data {
+                member-count: (- (get member-count family-data) u1)
+            })
+        )
+        
+        (ok family-id)
+    )
+)
