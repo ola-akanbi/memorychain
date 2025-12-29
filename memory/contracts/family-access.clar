@@ -311,3 +311,17 @@
         false
     )
 )
+
+(define-read-only (get-invitation (family-id uint) (invitee principal))
+    (map-get? family-invitations {family-id: family-id, invitee: invitee})
+)
+
+(define-read-only (get-total-family-count)
+    (var-get family-counter)
+)
+
+(define-read-only (get-family-stats)
+    (ok {
+        total-families: (var-get family-counter)
+    })
+)
