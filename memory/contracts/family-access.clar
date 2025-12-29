@@ -164,3 +164,40 @@
         (ok family-id)
     )
 )
+
+;; Accept family invitation
+(define-public (accept-invitation (family-id uint))
+    (let (
+        (caller tx-sender)
+        (invitation-data (unwrap! (map-get? family-invitations {family-id: family-id, invitee: caller}) 
+                                 ERR-INVITATION-NOT-FOUND))
+        (family-data (unwrap! (map-get? families family-id) ERR-FAMILY-NOT-FOUND))
+    )
+        ;; Check if invitation is still valid
+        (asserts! (is-invitation-valid family-id caller) ERR-INVITATION-EXPIRED)
+        (asserts! (get is-active family-data) ERR-FAMILY-NOT-FOUND)
+        
+        ;; Add member to family
+        (map-set family-members
+            {family-id: family-id, member: caller}
+            {
+                role: (get role invitation-data),
+                joined-at: family-id,
+                invited-by: (get inviter invitation-data),
+                is-active: true
+            }
+        )
+        
+        ;; Update family member count
+        (map-set families family-id 
+            (merge family-data {
+                member-count: (+ (get member-count family-data) u1)
+            })
+        )
+        
+        ;; Remove invitation
+        (map-delete family-invitations {family-id: family-id, invitee: caller})
+        
+        (ok family-id)
+    )
+)
